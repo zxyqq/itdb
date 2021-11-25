@@ -42,7 +42,7 @@ Areas: rooms, offices#区域：房间，办公室
 Associate file with the following contracts#关联文件到以下合同
 Associate file with the following items#关联文件到以下硬件
 Associate#关联
-Associated Files #管理文件 
+Associated Files #管理文件
 Associated Files#关联文件
 Associated Items#关联硬件
 Associated Software#关联软件
@@ -309,15 +309,15 @@ Read Only#只读
 Recent History#最近历史记录
 Rel#Rel
 Related#相关于
-RemAdmIP#远程管理IP
-Remote Administration IP#远程管理IP
+RemAdmIP#串口
+Remote Administration IP#串口
 Renewals#备件
 Reports#报告
 Right Margin#右边距
 Role#角色
 Rows#行
-S/N 2#库存编号 2
-S/N#库存编号
+S/N 2#资产编号 2
+S/N#资产编号
 S/W Manufacturer is missing#缺少软件厂商
 S/W Manufacturer#软件厂商
 S/W Manufacturers#软件厂商
@@ -419,3 +419,5 @@ Width#宽度
 Yes#是
 Ymd#年月日
 You forgot to select the file?#您忘记选择文件?
+Item Model#型号
+Rem.Adm.IP#串口

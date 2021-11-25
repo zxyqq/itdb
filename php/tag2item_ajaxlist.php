@@ -10,10 +10,12 @@ if (!is_numeric($tagid)) {
 
 
 
-$sql="SELECT items.id, agents.title || ' ' || items.model || ' [' || itemtypes.typedesc || ', ID:' || items.id || ']' as txt ".
-     "FROM agents,items,itemtypes WHERE ".
-     " agents.id=items.manufacturerid AND items.itemtypeid=itemtypes.id AND ".
+$sql="SELECT items.id, users.userdesc || ' ' || items.label || ' [' || itemtypes.typedesc || ', ID:' || items.id || ']' as txt ".
+     "FROM users,items,itemtypes WHERE ".
+     " users.id=items.userid AND items.itemtypeid=itemtypes.id AND ".
+     " itemtypes.id != 1 AND itemtypes.id != 2 AND ".
      " items.id IN (SELECT itemid from tag2item where tagid = '$tagid')";
+//file_put_contents("/tmp/tag2item_ajaxlist.txt",$sql."\n\n");
 $sthi=db_execute($dbh,$sql);
 $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
 $nitems=count($ri);

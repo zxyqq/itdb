@@ -1,4 +1,8 @@
 
+h3 {
+font-size:12pt
+}
+
 h1 {
   text-align:left;
   border:0;
@@ -6,7 +10,7 @@ h1 {
   background-color:white;
 
   color:#444;
-  font-size:12pt;
+  font-size:16pt;
   text-shadow:3px 3px 4px #cCCCCC;
 }
 
@@ -15,6 +19,15 @@ div.relatedlist {
   /*background-color:#0073C5;*/
   background-color:#6484A4;
   color:#ffffff;
+}
+
+table.tbl2 {
+  font-size:16pt;
+}
+
+table.tbl2 input[type=text], table.tbl2 input[type=password], table.tbl2 textarea, table.tbl2 div.mandatory {
+  font-size:10pt;
+  width:250px;
 }
 
 table.tbl2 th {

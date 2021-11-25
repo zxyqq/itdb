@@ -142,9 +142,9 @@ table.display thead th div.DataTables_sort_wrapper span {
 
 .dataTables_filter {
 	/*width: 50%;*/
-	width: 20%;
-	float: right;
-	text-align: right;
+	width: 50%;
+	float: center;
+	text-align: center;
 }
 
 .dataTables_info {
@@ -204,6 +204,7 @@ table.display tr.heading2 td {
 }
 
 table.display td {
+	font:normal 10px Verdana,Arial,'Bitstream Vera Sans',Helvetica,sans-serif;
 	padding: 3px 3px;
 }
 

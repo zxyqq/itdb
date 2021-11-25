@@ -116,9 +116,6 @@ if (!isset($dbid)) $dbid=0;
 <div style='text-align:left;float:left;margin-left:50px;min-width:350px;max-width:500px;min-height:300px;border:1px solid #fff;' 
      id='itemresults'><?php te("Click on Item count column on the left to display associated items");?></div>
 
-<div style='text-align:left;float:left;margin-left:50px;min-width:350px;max-width:500px;min-height:300px;border:1px solid #fff;' 
-     id='softwareresults'><?php te("Click on Software count column on the left to display associated software");?></div>
-
 <script>
   $(document).ready(function(){    
 
@@ -126,13 +123,6 @@ if (!isset($dbid)) $dbid=0;
       $("#itemresults").html('<center><img src="images/ajaxload.gif"></center>').load('php/tag2item_ajaxlist.php?tagid='+ $(this).attr('href'));
       return false;
     });
-
-    $(".showsoftware" ).click(function() {
-      $("#softwareresults").html('<center><img src="images/ajaxload.gif"></center>').load('php/tag2software_ajaxlist.php?tagid='+ $(this).attr('href'));
-      return false;
-    });
-
-
 
  }); 
 </script>

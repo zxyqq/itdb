@@ -172,7 +172,8 @@ else {
 date_default_timezone_set($settings['timezone']);
 
 read_trans($settings['lang']);
-if (get_magic_quotes_gpc()) {
+//if (get_magic_quotes_gpc()) {
+if (0) {
     function stripslashes_deep($value)
     {
         $value = is_array($value) ?

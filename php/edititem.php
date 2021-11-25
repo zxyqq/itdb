@@ -1,7 +1,23 @@
 <?php 
 
+
+  $ispart=0;
+  $rackmountable=0;
+  $manufacturerid=2;
+  $sn2="";
+  $sn3="";
+
 /* Spiros Ioannou 2009 , sivann _at_ gmail.com */
 if (!isset($initok)) {echo "do not run this script directly";exit;}
+
+if (isset($_POST['maintenanceinfo'])) { 
+    $sql="SELECT userdesc FROM users where id=$maintenanceinfo";
+    $sth=db_execute($dbh,$sql);
+    $purchprice=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $_POST['purchprice']=$purchprice[0]['userdesc'];
+}
+
+//file_put_contents("/tmp/a.txt",$_POST['dnsname']."\n\n", FILE_APPEND);
 
 //form variables
 $formvars=array("itemtypeid","function","manufacturerid","label",
@@ -100,10 +116,12 @@ if (!isset($_GET['id'])) {echo "edititem:missing arguments";exit;}
 /* update item data */
 //if came here from a form post, update db with new values
 if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
+//file_put_contents("/tmp/edititem.php.getid.txt",$_GET['id']."\n\n", FILE_APPEND);
 //get form post variables and create the sql query
   $set="";
   $c=count($formvars);$i=0;
   foreach ($formvars as $formvar){
+      //file_put_contents("/tmp/edititem.php.formvars.txt",$_POST[$formvar]."\n\n", FILE_APPEND);
     if (isset($_POST[$formvar]))
       $$formvar=trim($_POST[$formvar]);//create $sn from $_POST['sn']
     else {$i++;continue;} //for files which are in _FILES not in _POST
@@ -147,6 +165,7 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
   }
 
   $sql="UPDATE items set $set WHERE id=$id";
+  //file_put_contents("/tmp/edititem.php.txt",$sql."\n\n");
   db_exec($dbh,$sql); 
 
   //Add new action entry
@@ -236,7 +255,6 @@ elseif (isset($_POST['itemtypeid']) && ($_GET['id']=="new")&&isvalidfrm()) {
 
 
 
-
   //// STORE DATA
   $sql="INSERT into items (label, itemtypeid, function, manufacturerid, ".
   " warrinfo, model, sn, sn2, sn3, origin, warrantymonths, purchasedate, purchprice, ".
@@ -310,42 +328,39 @@ elseif (isset($_POST['itemtypeid']) && ($_GET['id']=="new")&&isvalidfrm()) {
 }//xxxadd new item
 
 function isvalidfrm() {
-global $dbh,$disperr,$err,$_POST;
-  //check for mandatory fields
-  $err="";
-  $disperr="";
-  if ($_POST['itemtypeid']=="") $err.="Missing Item Type<br>";
-  if ($_POST['userid']=="") $err.="Missing User<br>";
-  if ($_POST['manufacturerid']=="") $err.="Missing manufacturer<br>";
-  if (!isset($_POST['rackmountable'])) $err.="Missing 'Rackmountable' classification<br>";
-  if (!isset($_POST['ispart'])) $err.="Missing 'Part' classification<br>";
-  if (!isset($_POST['status'])) $err.="Missing 'Status' classification<br>";
-  if ($_POST['model']=="") $err.="Missing model<br>";
+    global $dbh,$disperr,$err,$_POST;
+    $err="";
+    $disperr="";
+    if ($_POST['sn']=="") $err.="Missing serial number<br>";
+    if ($_POST['itemtypeid']=="") $err.="Missing Item Type<br>";
+    if ($_POST['rackid']=="") $err.="Missing rack id<br>";
+    //if ($_POST['purchasedate']=="") $err.="Missing Date of Borrow<br>";
+    if ($_POST['userid']=="") $err.="Missing User<br>";
+    //if ($_POST['warrantymonths']=="") $err.="Missing Borrow days";
+    if (!isset($_POST['status'])) $err.="Missing 'Status' classification<br>";
+    if ($_POST['model']=="") $err.="Missing model<br>";
 
 
-  $myid=$_GET['id'];
-  if ($myid != "new" && is_numeric($myid) && (strlen(trim($_POST['sn'])) || strlen(trim($_POST['sn2'])))) {
-	  $sql="SELECT id from items where  id <> $myid AND ((length(sn)>0 AND sn in ('{$_POST['sn']}', '{$_POST['sn2']}')) OR (length(sn2)>0 AND sn2 in ('{$_POST['sn']}', '{$_POST['sn2']}')))  LIMIT 1";
-	  $sth=db_execute($dbh,$sql);
-	  $dups=$sth->fetchAll(PDO::FETCH_ASSOC);
-	  if (count($dups[0])) {
-		  $err.="Duplicate SN with id <a href='$scriptname?action=edititem&amp;id={$dups[0]['id']}'><b><u>{$dups[0]['id']}</u></b></a>";
-	  }
-  }
+    $myid=$_GET['id'];
+    if ($myid != "new" && is_numeric($myid) && (strlen($_POST['sn']) || strlen($_POST['sn2']))) {
+        $sql="SELECT id from items where  id <> $myid AND ((length(sn)>0 AND sn in ('{$_POST['sn']}', '{$_POST['sn2']}')) OR (length(sn2)>0 AND sn2 in ('{$_POST['sn']}', '{$_POST['sn2']}')))  LIMIT 1";
+        $sth=db_execute($dbh,$sql);
+        $dups=$sth->fetchAll(PDO::FETCH_ASSOC);
+        if (count($dups[0])) {
+            $err.="Duplicate SN with id <a href='$scriptname?action=edititem&amp;id={$dups[0]['id']}'><b><u>{$dups[0]['id']}</u></b></a>";
+        }
+    }
 
-
-
-
-  if (strlen($err)) {
-      $disperr= "
-      <div class='ui-state-error ui-corner-all' style='padding: 0 .7em;width:300px;margin-bottom:3px;'> 
-	      <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>
-	      <strong>Error: Item not saved, correct these errors:</strong><br><div style='text-align:left'>$err</div></p>
-      </div>
-      ";
-    return 0;
-  }
-  return 1;
+    if (strlen($err)) {
+        $disperr= "
+            <div class='ui-state-error ui-corner-all' style='padding: 0 .7em;width:300px;margin-bottom:3px;'> 
+            <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>
+            <strong>Error: Item not saved, correct these errors:</strong><br><div style='text-align:left'>$err</div></p>
+            </div>
+            ";
+        return 0;
+    }
+    return 1;
 }
 
 require('itemform.php');

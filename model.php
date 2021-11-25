@@ -226,7 +226,8 @@ global $uploaddir;
 function countitemtags($tagid) {
   global $dbh;
 
-  $sql="SELECT count(itemid) count from tag2item where tagid=$tagid";
+  /* $sql="SELECT count(itemid) count from tag2item where tagid=$tagid"; */
+  $sql="SELECT count(itemid) count from tag2item,items where tagid=$tagid AND items.id=tag2item.itemid AND items.itemtypeid !=1 AND items.itemtypeid !=2";
   $sth=db_execute($dbh,$sql);
   $r=$sth->fetch(PDO::FETCH_ASSOC);
   $sth->closeCursor();
@@ -384,15 +385,15 @@ function calcremdays($purchdate_ts,$warrantymonths) {
 	$pdate = new DateTime();
 	$pdate->setTimestamp(intval($purchdate_ts));
 
-	$d_interval=new DateInterval("P{$warrantymonths}M");
+	$d_interval=new DateInterval("P{$warrantymonths}D");
 	$d_interval->invert=0;
 	$enddate=$pdate->add($d_interval);
 
 	$exp_interval = $nowdate->diff($enddate);
 	if ($exp_interval->format('%y'))
-		$exp_interval_str=$exp_interval->format('%r %y yr %m mon, %d d');
+		$exp_interval_str=$exp_interval->format('%r %y 年 %m 月, %d 天');
 	else
-		$exp_interval_str=$exp_interval->format('%r %m mon, %d d');
+		$exp_interval_str=$exp_interval->format('%r %m 月, %d 天');
 
 	$exp_interval_sign=$exp_interval->format('%r');
 	$exp_interval_days="$exp_interval_sign".$exp_interval->days;
@@ -407,9 +408,9 @@ function calcremdays($purchdate_ts,$warrantymonths) {
 
 
 function showremdays($remdays) {
-  if (abs($remdays)>360) $remw=sprintf("%.1f",($remdays/360))."yr";
-  else if (abs($remdays)>70) $remw=sprintf("%.1f",($remdays/30))."mon";
-  else if (strlen($remdays)) $remw="$remdays"."d";
+  if (abs($remdays)>360) $remw=sprintf("%.1f",($remdays/360))."年";
+  else if (abs($remdays)>70) $remw=sprintf("%.1f",($remdays/30))."月";
+  else if (strlen($remdays)) $remw="$remdays"."天";
   else $remw="";
 
 

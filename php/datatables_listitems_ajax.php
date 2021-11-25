@@ -9,10 +9,19 @@
 	/* Array of database columns which should be read and sent back to DataTables. Use a space where
 	 * you want to insert a non-database field (for example a counter or static image)
 	 */
-	$aColumns = array('itemid','itemlabel','typedesc','title','itemmodel','dnsname','serial','purchasedate',
-	'remdays','username','statusdesc','locationname','areaname','rackinfo','purchprice','macs','ipv4','ipv6',
-	'remadmip','taginfo','softinfo');
-	
+	$aColumns = array('itemid',
+            'racklabel',
+            'itemlabel',
+            'ipv4',
+            'remadmip',
+            'userdesc',
+	    'taginfo',
+            'statusdesc',
+	    'items.model',
+            'serial', 
+	    'purchprice',
+	    'purchasedate','dnsname');
+
 	include( '../init.php');
 
 	/* Indexed column (used for fast and accurate table cardinality) */
@@ -43,30 +52,32 @@
 			 $_GET['iDisplayStart'] ;
 	}
 	
+        //file_put_contents("/tmp/datatables_listitems_ajax.php.limit.txt",$sLimit."\n\n");
 	
 	/*
 	 * Ordering
 	 */
 	if ( isset( $_GET['iSortCol_0'] ) )
-	{
-		$sOrder = "ORDER BY  ";
-		for ( $i=0 ; $i<intval( $_GET['iSortingCols'] ) ; $i++ )
-		{
-			if ( $_GET[ 'bSortable_'.intval($_GET['iSortCol_'.$i]) ] == "true" )
-			{
-				$sOrder .= $aColumns[ intval( $_GET['iSortCol_'.$i] ) ]."
-				 	". $_GET['sSortDir_'.$i]  .", ";
-			}
-		}
-		
-		$sOrder = substr_replace( $sOrder, "", -2 );
-		if ( $sOrder == "ORDER BY" )
-		{
-			$sOrder = "";
-		}
-	}
+        {
+                $sOrder = "ORDER BY  ";
+                for ( $i=0 ; $i<intval( $_GET['iSortingCols'] ) ; $i++ )
+                {
+                        if ( $_GET[ 'bSortable_'.intval($_GET['iSortCol_'.$i]) ] == "true" )
+                        {
+                                $sOrder .= $aColumns[ intval( $_GET['iSortCol_'.$i] ) ]."
+                                         ". $_GET['sSortDir_'.$i]  .", ";
+                        }
+                }
+                
+                $sOrder = substr_replace( $sOrder, "", -2 );
+                if ( $sOrder == "ORDER BY" )
+                {
+                        $sOrder = "";
+                }
+        }
 	
 	
+
 	/* 
 	 * Filtering
 	 * NOTE This assumes that the field that is being searched on is a string typed field (ie. one
@@ -89,6 +100,7 @@
 		//fix ambiguous colnames here for filtering
 	}
 	
+        //file_put_contents("/tmp/datatables_listitems_ajax.php_where.txt",$sWhere."\n\n");
 	/* Individual column filtering */
 	for ( $i=0 ; $i<count($aColumns) ; $i++ )
 	{
@@ -116,34 +128,29 @@
 
 	$t=time();
 
+
 	
 	if ( $sWhere != "" )
 	{
-
 	      /* items after filtering */
 	      //$sQueryCnt = "SELECT count($sIndexColumn) as count FROM $sTable $sWhere";
 	      $sQueryCnt = "
 		  SELECT count(items.id) as count ,
 		  items.id AS itemid,
-		  items.model AS itemmodel,
+		  racks.label as racklabel,
 		  items.label AS itemlabel,
-                  locations.name as locationname,
-                  coalesce(sn,'') || ' ' || coalesce(sn2,'') || ' ' || coalesce(sn3,'') AS serial,
-				  '' as remdays, purchasedate, warrantymonths, 
-                  coalesce(racks.label,'') || ' ' || coalesce(racks.usize,'') || ' ' || coalesce(racks.model,'') AS rackinfo,
-                  (SELECT group_concat( tags.name ,',') from tags,tag2item WHERE tag2item.itemid=items.id AND tags.id=tag2item.tagid) AS taginfo,
-                  (SELECT group_concat( software.stitle ,'|') from software,item2soft WHERE item2soft.itemid=items.id AND software.id=item2soft.softid) AS softinfo
+                  coalesce(sn,'') || ' ' AS serial,
+                  (SELECT group_concat( tags.name ,',') from tags,tag2item WHERE tag2item.itemid=items.id AND tags.id=tag2item.tagid) AS taginfo
                   FROM
                   items
 		  JOIN itemtypes ON items.itemtypeid=itemtypes.id 
 		  JOIN agents ON items.manufacturerid=agents.id
 		  JOIN users ON items.userid=users.id
 		  JOIN statustypes ON items.status=statustypes.id
-		  LEFT OUTER JOIN locations ON items.locationid=locations.id
-		  LEFT OUTER JOIN locareas ON items.locareaid=locareas.id
-		  LEFT OUTER JOIN racks ON items.rackid=racks.id
+		  JOIN racks ON items.rackid=racks.id
 		  $sWhere";
 	      $sth=db_execute($dbh,$sQueryCnt);
+	      //file_put_contents("/tmp/itlog_query.txt",$sQueryCnt."\n\n");
 	      $rResultTotal=$sth->fetch(PDO::FETCH_ASSOC);
 	      $iFilteredTotal=$rResultTotal['count'];
 	      $sth->closeCursor();
@@ -157,43 +164,35 @@
 	//if ( $sWhere == "" ) $sWhere = " WHERE 1=1 ";
 	
 
-  //(purchasedate+warrantymonths*30*24*60*60-$t)/(60*60*24) AS remdays,
 	$sQuery = "
 		  SELECT 
 		  items.id AS itemid,
 		  itemtypes.typedesc as typedesc, 
                   agents.title,
-                  items.model as itemmodel,
+		  racks.label as racklabel,
                   dnsname,
                   items.label as itemlabel,
                   purchasedate,
-                  users.username,
+                  users.userdesc,
                   statustypes.statusdesc,
-                  locations.name as locationname,
-                  locareas.areaname,
-                  coalesce(sn,'') || ' ' || coalesce(sn2,'') || ' ' || coalesce(sn3,'') AS serial,
-				  '' as remdays, warrantymonths, 
-                  coalesce(racks.label,'') || ' ' || coalesce(racks.usize,'') || ' ' || coalesce(racks.model,'') AS rackinfo,
+                  coalesce(sn,'') || ' ' AS serial,
                   (SELECT group_concat( tags.name ,', ') FROM tags,tag2item WHERE tag2item.itemid=items.id AND tags.id=tag2item.tagid) AS taginfo,
-                  (SELECT group_concat( software.stitle ,',') FROM software,item2soft WHERE item2soft.itemid=items.id and software.id=item2soft.softid) AS softinfo,
                   purchprice,
-                  macs, ipv4, ipv6, remadmip
+                  ipv4, ipv6, remadmip
                   FROM
                   items
 		  JOIN itemtypes ON items.itemtypeid=itemtypes.id 
 		  JOIN agents ON items.manufacturerid=agents.id
 		  LEFT OUTER JOIN statustypes ON items.status=statustypes.id
 		  JOIN users ON items.userid=users.id
-		  LEFT OUTER JOIN locations ON items.locationid=locations.id
-		  LEFT OUTER JOIN locareas ON items.locareaid=locareas.id
-		  LEFT OUTER JOIN racks ON items.rackid=racks.id
+		  JOIN racks ON items.rackid=racks.id
 		  $sWhere
 		  $sOrder
 		  $sLimit
 		  ";
 
 
-//file_put_contents("/tmp/itlog.txt",$sQuery."\n\n");
+        //file_put_contents("/tmp/itlog_query.txt",$sQuery."\n\n");
 
 	           
 	$sth = db_execute($dbh,$sQuery);
@@ -223,36 +222,6 @@
 				   $aRow['itemid']."</a></span></div>";
 				$row[] = $r;
 			}
-			elseif ( $aColumns[$i] == "remdays" ) {
-				//$remdays=$aRow['remdays'];
-				$remdays_r=calcremdays($aRow['purchasedate'],$aRow['warrantymonths']);
-				$rdstr=$remdays_r['string'];
-				$rd=$remdays_r['days'];
-				$row[] = "<small><div title='$rd'>". $rdstr. "</div></small>"; // title attribute used for sorting
-			}
-
-			elseif ( $aColumns[$i] == "purchasedate" ) {
-				if (strlen($aRow[$aColumns[$i]]))
-				  $row[] = "<span title='{$aRow[$aColumns[$i]]}'>".date($dateparam,(int)$aRow[$aColumns[$i]])."</span>";
-				else 
-				  $row[] = "<span title='0'></span>";
-			}
-
-			elseif ( $aColumns[$i] == "softinfo" )
-			{
-				/* Special output formatting for 'version' column */
-				//$row[] = "<small>". $aRow[$aColumns[$i]] ."</small>";
-				$w=$aRow[$aColumns[$i]];
-				$arr = preg_split("/[\s,]+/", $w,5);
-				foreach ($arr as &$v)
-				  if (strlen($v)) $v=substr($v, 0, 5).". ";
-
-				$w2=implode("",$arr);
-				if (strlen($w2)) $w2.="...";
-				
-
-				$row[] = "<small><div title='$w'>". $w2. "</div></small>";
-			}
 			else if ( $aColumns[$i] != ' ' )
 			{
 				/* General output */
@@ -262,7 +231,7 @@
 		$output['aaData'][] = $row;
 	}
 	
-//file_put_contents("/tmp/itlog.txt",json_encode($output)."\n\n");
+        //file_put_contents("/tmp/itlog_output.txt",json_encode($output)."\n\n");
 	echo json_encode( $output );
 	
 	$sth->closeCursor();
